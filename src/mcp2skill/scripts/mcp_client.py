@@ -274,6 +274,9 @@ class Daemon:
                 return await self._call(request)
             if command == "disconnect":
                 return await self._disconnect(request)
+            if command == "stop":
+                asyncio.get_running_loop().call_later(0.2, self.stop_event.set)
+                return {"ok": True, "data": {"stopping": True}}
             return {"ok": False, "error": f"未知命令：{command}", "type": "usage"}
         except Exception as exc:
             return {"ok": False, "error": str(exc), "type": "error"}
@@ -553,6 +556,8 @@ def build_parser() -> argparse.ArgumentParser:
     disconnect = sub.add_parser("disconnect", help="断开连接")
     disconnect.add_argument("name", help="连接名，或 all")
 
+    sub.add_parser("stop", help="停止技能自身的后台进程")
+
     return parser
 
 
@@ -629,6 +634,16 @@ def main() -> None:
                 _fail(response.get("error", "断开失败"))
             names = response["data"]["disconnected"]
             print("已断开：" + (", ".join(names) if names else "无"))
+            return
+
+        if args.command == "stop":
+            if not _daemon_alive():
+                print("后台进程未运行。")
+                return
+            response = _rpc({"cmd": "stop"})
+            if not response.get("ok"):
+                _fail(response.get("error", "停止失败"))
+            print("已停止后台进程。")
             return
 
         if args.command == "tools":

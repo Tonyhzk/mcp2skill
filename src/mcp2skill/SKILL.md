@@ -49,6 +49,7 @@ python scripts/mcp_client.py tools [--name <name>] [--json]
 python scripts/mcp_client.py call <tool> '<json参数>' [--name <name>] [--json]
 python scripts/mcp_client.py status [--json]
 python scripts/mcp_client.py disconnect <name|all>
+python scripts/mcp_client.py stop
 ```
 
 只有一个连接时 `--name` 可以省略；存在多个连接时必须指定。
@@ -77,6 +78,7 @@ python scripts/mcp_client.py call Terminal '{"action":"close","terminal_id":"...
 - 某个连接 30 分钟没有被 `tools` 或 `call` 使用会自动断开，可用 `MCP2SKILL_IDLE`（秒）调整。
 - 所有连接断开后，后台进程在 5 分钟没有新请求时退出，可用 `MCP2SKILL_DAEMON_IDLE`（秒）调整。
 - 主动释放连接使用 `disconnect`；断开只影响客户端连接，不停止或影响服务端。
+- 任务结束或确认不再使用时，先执行 `disconnect all` 释放连接，再执行 `stop` 停止技能自身的后台进程；自动退出只是兜底。
 - 后台进程异常退出后，下一次 `connect` 会重新启动并建立连接。
 
 ## 排查
